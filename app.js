@@ -59,7 +59,7 @@ V.historial=()=>{
   const l=DB.equipos.filter(e=>e.estado=='legalizado').sort((a,b)=>b.fl.localeCompare(a.fl));
   b=srch+(l.map(e=>`<div class="card it"><b>${esc(e.serial)}</b>, ${esc(e.mac)}<br><small>${esc(nm(cl(e.claseId)))}, ${fdate(e.fl)}<br>Tarea ${esc(e.tarea)}, pedido ${esc(e.pedido)}<br>${esc(e.dir)}</small></div>`).join('')||empty('Aún no hay equipos legalizados.'));
  }else if(hist=='or'){
-  
+    b=srch+(DB.ordenes.slice().reverse().map(o=>`<details class="card it"><summary><span><b>Tarea ${esc(o.tarea)}</b>, pedido ${esc(o.pedido)}<br><small>${fdate(o.fecha)}, ${esc(o.dir)}</small></span></summary>${o.equipos.map(e=>`<div><small>${esc(e.clase)}: ${esc(e.serial)}, ${esc(e.mac)}</small></div>`).join('')}${o.materiales.map(m=>`<div><small>${esc(m.clase)}: ${m.q} ${m.u}</small></div>`).join('')}<label>Nota<textarea id="nota${o.id}" rows="3">${esc(o.nota||'')}</textarea></label><button class="pri" style="margin-bottom:8px" data-act="nota" data-id="${o.id}">Guardar nota</button><div class="row"><button class="lk" data-act="undoOr" data-id="${o.id}">Anular y devolver al stock</button><button class="lk" data-act="delOr" data-id="${o.id}">Borrar sin devolver</button></div></details>`).join('')||empty('Aún no hay órdenes legalizadas.'));
  }else{
   b=`<div class="card"><p>Tus datos viven solo en este celular. Si borras los datos de la app o la desinstalas, se pierden. Exporta un respaldo seguido y guárdalo en Drive o envíalo por WhatsApp.</p><button class="pri" data-act="exp">Exportar respaldo</button><label class="btn">Importar respaldo<input type="file" id="imp" accept=".json,application/json" hidden></label></div><p class="mut">${DB.clases.length} clases, ${DB.equipos.length} equipos, ${DB.ordenes.length} órdenes.</p>`;
  }
