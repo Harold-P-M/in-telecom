@@ -59,7 +59,7 @@ V.historial=()=>{
   const l=DB.equipos.filter(e=>e.estado=='legalizado').sort((a,b)=>b.fl.localeCompare(a.fl));
   b=srch+(l.map(e=>`<div class="card it"><b>${esc(e.serial)}</b>, ${esc(e.mac)}<br><small>${esc(nm(cl(e.claseId)))}, ${fdate(e.fl)}<br>Tarea ${esc(e.tarea)}, pedido ${esc(e.pedido)}<br>${esc(e.dir)}</small></div>`).join('')||empty('Aún no hay equipos legalizados.'));
  }else if(hist=='or'){
-  b=srch+(DB.ordenes.slice().reverse().map(o=>`<details class="card it"><summary><span><b>Tarea ${esc(o.tarea)}</b>, pedido ${esc(o.pedido)}<br><small>${fdate(o.fecha)}, ${esc(o.dir)}</small></span></summary>${o.equipos.map(e=>`<div><small>${esc(e.clase)}: ${esc(e.serial)}, ${esc(e.mac)}</small></div>`).join('')}${o.materiales.map(m=>`<div><small>${esc(m.clase)}: ${m.q} ${m.u}</small></div>`).join('')}<div class="row"><button class="lk" data-act="undoOr" data-id="${o.id}">Anular y devolver al stock</button><button class="lk" data-act="delOr" data-id="${o.id}">Borrar sin devolver</button></div></details>`).join('')||empty('Aún no hay órdenes legalizadas.'));
+  
  }else{
   b=`<div class="card"><p>Tus datos viven solo en este celular. Si borras los datos de la app o la desinstalas, se pierden. Exporta un respaldo seguido y guárdalo en Drive o envíalo por WhatsApp.</p><button class="pri" data-act="exp">Exportar respaldo</button><label class="btn">Importar respaldo<input type="file" id="imp" accept=".json,application/json" hidden></label></div><p class="mut">${DB.clases.length} clases, ${DB.equipos.length} equipos, ${DB.ordenes.length} órdenes.</p>`;
  }
@@ -88,6 +88,7 @@ async function importar(f){
 document.addEventListener('click',async e=>{
  const b=e.target.closest('[data-act]');if(!b)return;
  const a=b.dataset.act,id=Number(b.dataset.id);
+ if(a!='menu')$('#menu').hidden=true;
  if(a=='nav'){view=b.dataset.v;render();scrollTo(0,0)}
  else if(a=='seg'){hist=b.dataset.h;render()}
  else if(a=='exp')exportar();
@@ -105,6 +106,9 @@ document.addEventListener('click',async e=>{
  else if(a=='delOr'){if(confirm('¿Borrar esta orden y sus equipos? Nada vuelve al stock.')&&await commit(()=>{
    DB.equipos=DB.equipos.filter(e=>e.ordenId!=id);
    DB.ordenes=DB.ordenes.filter(x=>x.id!=id)},'Orden borrada'))render()}
+  else if(a=='nota'){const t=$('#nota'+id).value.trim();await commit(()=>{DB.ordenes.find(x=>x.id==id).nota=t},'Nota guardada')}
+  else if(a=='menu')$('#menu').hidden=!$('#menu').hidden;
+  else if(a=='reset'){if(prompt('Esto borra TODO el inventario y las órdenes. Si quieres conservarlo, cancela y exporta un respaldo primero. Para continuar escribe BORRAR')==='BORRAR'&&await commit(()=>{DB={clases:[],equipos:[],stock:{},ordenes:[],seq:1}},'Inventario restablecido')){view='stock';render()}}
 });
 document.addEventListener('change',e=>{
  const t=e.target;
