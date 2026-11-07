@@ -27,24 +27,24 @@ V.stock=()=>{
  const tecs=[...new Set(DB.clases.map(c=>c.tec))];
  const cs=DB.clases.filter(c=>!ftec||c.tec==ftec);
  const eq=cs.filter(c=>c.tipo=='equipo').map(c=>{const l=DB.equipos.filter(e=>e.claseId==c.id&&e.estado=='stock');
-  return `<details class="card"><summary><span><b>${esc(c.nombre)}</b> <span class="tag">${esc(c.tec)}</span></span><span class="n">${l.length}</span></summary>${l.map(e=>`<div class="row"><span>${esc(e.serial)}<br><small>${esc(e.mac)}</small></span><button class="lk" data-act="delEq" data-id="${e.id}">Borrar</button></div>`).join('')||empty('Sin equipos en stock.')}</details>`}).join('');
+  return `<details class="card"><summary><span><b>${esc(c.nombre)}</b> <span class="tag">${esc(c.tec)}</span></span><span class="n">${l.length}</span></summary>${l.map(e=>`<div class="row"><span>Serial: ${esc(e.serial)}<br>MAC: ${esc(e.mac)}</span><button class="lk" data-act="delEq" data-id="${e.id}">Borrar</button></div>`).join('')||empty('Sin equipos en stock.')}</details>`}).join('');
  const ma=cs.filter(c=>c.tipo=='material').map(c=>`<div class="card row"><span><b>${esc(c.nombre)}</b> <span class="tag">${esc(c.tec)}</span></span><span class="n">${DB.stock[c.id]||0} <small>${c.unidad}</small></span></div>`).join('');
  if(!DB.clases.length)return `<h2>Stock</h2>${empty('Aún no hay nada. Empieza creando una clase en la pestaña Clases.')}`;
  return `<h2>Stock</h2><select id="ftec"><option value="">Todas las tecnologías</option>${tecs.map(t=>`<option${t==ftec?' selected':''}>${esc(t)}</option>`).join('')}</select><h3>Equipos</h3>${eq||empty('No hay clases de equipos.')}<h3>Materiales</h3>${ma||empty('No hay clases de materiales.')}`;
 };
-V.clases=()=>`<h2>Clases</h2><form id="fCl" class="card"><label>Nombre y referencia<input name="nombre" required placeholder="Cable modem Arris ref X"></label><label>Tecnología<input name="tec" list="tecs" value="HFC" required></label><datalist id="tecs"><option>HFC</option>${[...new Set(DB.clases.map(c=>c.tec))].map(t=>`<option>${esc(t)}</option>`).join('')}</datalist><label>Tipo<select name="tipo"><option value="equipo">Equipo (con serial y MAC)</option><option value="material">Material (con cantidad)</option></select></label><label>Unidad (solo materiales)<select name="unidad"><option>unidades</option><option>metros</option></select></label><button class="pri">Guardar clase</button></form>${DB.clases.map(c=>`<div class="card row"><span><b>${esc(c.nombre)}</b><br><small>${esc(c.tec)}, ${c.tipo}${c.tipo=='material'?', en '+c.unidad:''}</small></span><button class="lk" data-act="delCl" data-id="${c.id}">Borrar</button></div>`).join('')}`;
+V.clases=()=>`<h2>Clases</h2><form id="fCl" class="card"><label>Nombre y referencia<input name="nombre" required placeholder="Cable modem Arris ref X"></label><label>Tecnología<select name="tec"><option>HFC</option><option>G-PON</option></select></label><label>Tipo<select name="tipo"><option value="equipo">Equipo (con serial y MAC)</option><option value="material">Material (con cantidad)</option></select></label><label>Unidad (solo materiales)<select name="unidad"><option>unidades</option><option>metros</option></select></label><button class="pri">Guardar clase</button></form>${DB.clases.map(c=>`<div class="card row"><span><b>${esc(c.nombre)}</b><br><small>${esc(c.tec)}, ${c.tipo}${c.tipo=='material'?', en '+c.unidad:''}</small></span><button class="lk" data-act="delCl" data-id="${c.id}">Borrar</button></div>`).join('')}`;
 V.equipos=()=>{
  const cs=DB.clases.filter(c=>c.tipo=='equipo');
  if(!cs.length)return `<h2>Equipos</h2>${empty('Primero crea una clase de tipo equipo en la pestaña Clases.')}`;
  if(!cs.some(c=>c.id==eqClase))eqClase=cs[0].id;
- const l=DB.equipos.filter(e=>e.claseId==eqClase&&e.estado=='stock').slice(-8).reverse();
- return `<h2>Equipos</h2><form id="fEq" class="card"><label>Clase<select id="ecl">${opt(cs,eqClase)}</select></label><label>Serial<input id="serial" name="serial" required autocapitalize="characters" autocomplete="off"></label><label>MAC<input name="mac" required autocapitalize="characters" autocomplete="off" placeholder="AA:BB:CC:DD:EE:FF"></label><button class="pri">Guardar equipo</button></form><h3>Últimos agregados</h3>${l.map(e=>`<div class="card"><b>${esc(e.serial)}</b><br><small>${esc(e.mac)}</small></div>`).join('')||empty('Aún no hay equipos de esta clase.')}`;
+  const l=DB.equipos.filter(e=>e.claseId==eqClase&&e.estado=='stock').slice(-8).reverse();const c=cl(eqClase);
+ return `<h2>Equipos</h2><form id="fEq" class="card"><label>Clase<select id="ecl">${opt(cs,eqClase)}</select></label><label>Serial<input id="serial" name="serial" required autocapitalize="characters" autocomplete="off"></label><label>MAC<input name="mac" required autocapitalize="characters" autocomplete="off"></label><button class="pri">Guardar equipo</button></form><h3>Últimos agregados</h3>${l.map(e=>`<div class="card"><b>${esc(c.nombre)}</b> <span class="tag">${esc(c.tec)}</span><br>Serial: ${esc(e.serial)}<br>MAC: ${esc(e.mac)}</div>`).join('')||empty('Aún no hay equipos de esta clase.')}`;
 };
 V.material=()=>{
  const cs=DB.clases.filter(c=>c.tipo=='material');
  if(!cs.length)return `<h2>Material</h2>${empty('Primero crea una clase de tipo material en la pestaña Clases.')}`;
  if(!cs.some(c=>c.id==maClase))maClase=cs[0].id;
- return `<h2>Material</h2><form id="fMa" class="card"><label>Clase<select id="mcl">${opt(cs,maClase)}</select></label><label>Cantidad a agregar (${cl(maClase).unidad})<input name="q" type="number" min="1" step="1" inputmode="numeric" required></label><button class="pri">Agregar al stock</button></form><h3>Stock actual</h3>${cs.map(c=>`<div class="card row"><span>${esc(c.nombre)}</span><span class="n">${DB.stock[c.id]||0} <small>${c.unidad}</small></span></div>`).join('')}`;
+  return `<h2>Material</h2><form id="fMa" class="card"><label>Clase<select id="mcl">${opt(cs,maClase)}</select></label><label>Cantidad a agregar (${cl(maClase).unidad})<input name="q" type="number" min="1" step="1" inputmode="numeric" required></label><button class="pri">Agregar al stock</button></form><h3>Stock actual</h3>${cs.map(c=>`<div class="card row"><span><b>${esc(c.nombre)}</b> <span class="tag">${esc(c.tec)}</span></span><span class="n">${DB.stock[c.id]||0} <small>${c.unidad}</small></span></div>`).join('')}`;
 };
 V.legalizar=()=>{
  const eq=DB.equipos.filter(e=>e.estado=='stock');
@@ -133,10 +133,8 @@ document.addEventListener('submit',async e=>{
  }else if(f.id=='fEq'){
   const s=v.serial.trim().toUpperCase();
   if(await commit(()=>{
-   const mac=normMac(v.mac.trim());
-   if(!mac)throw new Error('MAC inválida: deben ser 12 caracteres hexadecimales');
+   const mac=v.mac.trim().toUpperCase();
    if(DB.equipos.some(x=>x.serial==s))throw new Error('Ese serial ya está registrado');
-   if(DB.equipos.some(x=>x.mac==mac))throw new Error('Esa MAC ya está registrada');
    DB.equipos.push({id:DB.seq++,claseId:eqClase,serial:s,mac,estado:'stock'})},'Equipo guardado')){render();$('#serial').focus()}
  }else if(f.id=='fMa'){
   const q=Number(v.q);
